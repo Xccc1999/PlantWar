@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scable=0">
+    <title>飞机大战</title>
+    <link rel="stylesheet" href="./css/reset.css">
+    <style>
+        div {
+            box-sizing: border-box;
+        }
+
+        input {
+            display: block;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            outline: 0;
+            background-color: transparent;
+            text-align: center;
+        }
+
+        .wrap {
+            width: 320px;
+            height: 568px;
+            margin: 0 auto;
+            background-color: lightgray;
+            background-image: url(./img/background.png);
+            background-size: 100% 100%;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .alert {
+            width: 80%;
+            padding: 20px;
+            background-color: #d3d3d3;
+            margin: 150px auto;
+            border-radius: 8px;
+            box-shadow: 1px 1px 5px #333;
+            text-align: center;
+            position: relative;
+            z-index: 999;
+        }
+
+        .end {
+            display: none;
+        }
+
+        .start div,
+        .end div {
+            height: 30px;
+            line-height: 30px;
+        }
+
+        .start .ipt {
+            border-bottom: 1px solid black;
+        }
+
+        #start,
+        #begin {
+            margin-top: 20px;
+            border: 1px solid black;
+        }
+
+        #start:hover,
+        #begin:hover {
+            cursor: pointer;
+        }
+
+        #hero {
+            width: 66px;
+            height: 82px;
+            background-image: url(./img/herofly.png);
+            position: absolute;
+        }
+
+        .e1 {
+            width: 38px;
+            height: 34px;
+            background-image: url(./img/enemy1.png);
+            position: absolute;
+            top: -34px;
+        }
+
+        .e2 {
+            width: 46px;
+            height: 64px;
+            background-image: url(./img/enemy2.png);
+            position: absolute;
+            top: -64px;
+        }
+
+        .e3 {
+            width: 110px;
+            height: 164px;
+            background-image: url(./img/enemy3.png);
+            position: absolute;
+            top: -164px;
+        }
+
+        .bullet {
+            width: 6px;
+            height: 14px;
+            position: absolute;
+            background-image: url(./img/bullet1.png);
+        }
+
+        .score {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            line-height: 40px;
+            font-size: 20px;
+            text-indent: 20px;
+        }
+
+        .end p:nth-of-type(1) {
+            font-size: 20px;
+            border-bottom: 1px solid black;
+        }
+
+        .end ul {
+            padding: 10px;
+        }
+
+        .end ul li {
+            display: flex;
+            justify-content: space-around;
+            margin: 5 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <!-- 游戏开始弹窗 -->
+        <div class="alert start">
+            <div class="ipt">
+                <input type="text" placeholder="请输入昵称">
+            </div>
+            <div class="btn" id="begin" onclick="gamestart()" ontouchstart="gamestart()">开始</div>
+        </div>
+        <!-- 小飞机 -->
+        <div id="hero"></div>
+        <!-- 敌机 -->
+        <div id="enemy">
+            <!-- 管理父级，不是定位父级 -->
+            <!-- <div class="e1"></div> -->
+            <!-- <div class="e2"></div> -->
+            <!-- <div class="e3"></div> -->
+        </div>
+        <div id="bullet">
+            <!-- <div class="bullet"></div> -->
+        </div>
+        <!-- 得分 -->
+        <p class="score">得分：<span id="score">0</span></p>
+        <!-- 游戏结束弹窗 -->
+        <div class="alert end">
+            <p>排行榜</p>
+            <ul>
+                <!-- <li>
+                    <span>1</span>
+                    <span>leo</span>
+                    <span>200</span>
+                </li> -->
+            </ul>
+            <div class="btn" id="begin" onclick="gamebegin()" ontouchstart="gamebegin()">再来一次</div>
+        </div>
+    </div>
+</body>
+<script src="./js/public.js"></script>
+<script>
+    // 全局变量
+    // 获取游戏场景的宽高
+    var sw = isMobile() ? window.innerWidth : 320
+    var sh = isMobile() ? window.innerHeight : 568
+    var dWrap = document.querySelector(".wrap")
+    var dStart = document.querySelector(".start")
+    var iptNick = document.querySelector(".start input")
+    var timer = null    //全局的计时器
+    var dHero = document.getElementById("hero")
+    var score = 0
+    var spanScore = document.getElementById("score")
+    var dEnd = document.querySelector(".end")
+    var ul = document.querySelector("ul")
+
+    // bg.js
+    var dis = 0
+
+        // 设置游戏场景 自执行函数
+        ; (function () {
+            dWrap.style.width = sw + "px"
+            dWrap.style.height = sh + "px"
+        })()
+</script>
+<script src="./js/bg.js"></script>
+<script src="./js/hero.js"></script>
+<script src="./js/enemy.js"></script>
+<script src="./js/bullet.js"></script>
+<script>
+    // 游戏开始
+    function gamestart() {
+        if (iptNick.value === "") {
+            alert("昵称不能为空!")
+            return
+        }
+        // 1.隐藏掉start-alert
+        dStart.style.display = "none"
+        // 2.动起来
+        timer = setInterval(function () {
+            // 1.背景
+            bgMove()
+            // 2.小飞机
+            heroMove()
+            // 3.敌机
+            enemyMove()
+            // 4.子弹
+            bulletMove()
+            // 5.碰撞检测
+            checkCrash()
+        }, 30)
+    }
+
+    // 碰撞检测
+    function checkCrash() {
+        var es = dEnemy.children
+        var bs = dBullet.children
+        // 遍历敌机
+        for (var i = 0; i < es.length; i++) {
+            // 如果敌机在爆炸状态，不参与碰撞检测
+            if (es[i].isBol) {
+                continue
+            }
+            // 敌机和小飞机碰撞
+            if (isCrash(es[i], dHero)) {
+                gameOver()
+            }
+            // 遍历子弹
+            for (var j = 0; j < bs.length; j++) {
+                if (!bs[j].isDel && isCrash(es[i], bs[j])) {
+                    // 子弹消失，敌机hp-100
+                    bs[j].isDel = true
+                    es[i].hp -= 100
+                    if (es[i].hp <= 0) {
+                        // 清零要爆炸
+                        es[i].isBol = true  // 修改状态
+                        // 得分
+                        score += es[i].score
+                        spanScore.innerHTML = score
+                        break   //跳出子弹的循环
+                    }
+                }
+            }
+        }
+    }
+
+    function gameOver() {
+        // 计时器停止
+        clearInterval(timer)
+        // gameover弹窗
+        dEnd.style.display = "block"
+        // 显示排行榜（前三名）
+        showList()
+    }
+
+    function gamebegin() {
+        // 游戏重置
+        dEnd.style.display = "none"
+        dStart.style.display = "block"
+        // 得分清零
+        score = 0
+        spanScore.innerHTML = score
+        // 小飞机复位
+        setHeroPosition()
+        // 子弹 敌机清空
+        dEnemy.innerHTML = ""
+        dBullet.innerHTML = ""
+        // 清空排行榜
+        ul.innerHTML = ""
+    }
+
+    // 排行榜
+    // 将数据保存在 localStorage.phb 中
+
+    function showList() {
+        if (!localStorage.phb) {
+            // 没有
+            var arr = [{
+                nick: iptNick.value,
+                score: score
+            }]
+            // 将数据保存到本地
+            localStorage.phb = JSON.stringify(arr)
+        } else {
+            // 有
+            var arr = JSON.parse(localStorage.phb)
+            for (var i=0; i<arr.length; i++) {
+                var obj = arr[i]
+                if (obj.nick === iptNick.value) {
+                    // 存在
+                    var isExit = true
+                    if (obj.score < score) {
+                        // 替换数据
+                        obj.score = score
+                    }
+                }
+            }
+            if (!isExit) {
+                // 不存在
+                arr.push({
+                    nick: iptNick.value,
+                    score: score
+                })
+            }
+            // 将新数据保存到本地
+            localStorage.phb = JSON.stringify(arr)
+        }
+        // 获取排行榜并排序
+        var arr = JSON.parse(localStorage.phb)
+        // 冒泡排序
+        arr.sort(function(a,b) {
+            return a.score - b.score
+        }).reverse()
+        for (var i=0; i<arr.length; i++) {
+            // 填充li
+            if (i >= 3) {
+                break
+            }
+            var obj = arr[i]
+            var li = document.createElement("li")
+            li.innerHTML = `
+                <span>${i+1}</span>
+                <span>${obj.nick}</span>
+                <span>${obj.score}</span>
+            `
+            ul.appendChild(li)
+        }
+    }
+</script>
+
+</html>
